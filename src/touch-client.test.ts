@@ -77,7 +77,7 @@ describe('touchLicenseSeat', () => {
 
   it('passes through updatedCount from api-auth', async () => {
     const fetchImpl: typeof fetch = async () =>
-      new Response(JSON.stringify({ success: true, updatedCount: 0, timestamp: 't' }), {
+      new Response(JSON.stringify({ success: true, updatedCount: 1, timestamp: 't' }), {
         status: 200,
         headers: { 'content-type': 'application/json' },
       });
@@ -86,8 +86,26 @@ describe('touchLicenseSeat', () => {
       accessToken: 'tok',
       fetchImpl,
     });
-    assert.equal(result.updatedCount, 0);
-    assert.equal(isLicenseSeatInactiveResult(result), true);
+    assert.equal(result.updatedCount, 1);
+    assert.equal(isLicenseSeatInactiveResult(result), false);
+  });
+
+  it('throws SEAT_INACTIVE when updatedCount is 0', async () => {
+    const fetchImpl: typeof fetch = async () =>
+      new Response(JSON.stringify({ success: true, updatedCount: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    await assert.rejects(
+      () =>
+        touchLicenseSeat({
+          apiAuthBaseUrl: 'https://auth.example.com',
+          accessToken: 'tok',
+          fetchImpl,
+        }),
+      (error: unknown) =>
+        error instanceof LicenseTouchError && error.code === 'SEAT_INACTIVE',
+    );
   });
 });
 

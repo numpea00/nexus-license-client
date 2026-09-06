@@ -112,12 +112,21 @@ export async function touchLicenseSeat(
     timestamp?: string;
     updatedCount?: number;
   };
-  return {
+  const result: LicenseTouchResult = {
     success: payload.success !== false,
     timestamp: payload.timestamp,
     updatedCount:
       typeof payload.updatedCount === 'number' ? payload.updatedCount : undefined,
   };
+  // api-auth: 0 rows = seat closed/stale — clients should re-OAuth (not treat as success).
+  if (typeof result.updatedCount === 'number' && result.updatedCount === 0) {
+    throw new LicenseTouchError({
+      message: 'No active license seat to renew',
+      code: 'SEAT_INACTIVE',
+      body: result,
+    });
+  }
+  return result;
 }
 
 /**

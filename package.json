@@ -1,6 +1,6 @@
 {
   "name": "@tubtimx/nexus-license-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Shared license seat touch (activity renew) client for TubtimX Nexus External Apps → api-auth POST /sessions/heartbeat",
   "license": "UNLICENSED",
   "repository": {

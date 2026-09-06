@@ -99,11 +99,20 @@ export async function touchLicenseSeat(input) {
         throwForHttpStatus(response.status, body);
     }
     const payload = (body ?? {});
-    return {
+    const result = {
         success: payload.success !== false,
         timestamp: payload.timestamp,
         updatedCount: typeof payload.updatedCount === 'number' ? payload.updatedCount : undefined,
     };
+    // api-auth: 0 rows = seat closed/stale — clients should re-OAuth (not treat as success).
+    if (typeof result.updatedCount === 'number' && result.updatedCount === 0) {
+        throw new LicenseTouchError({
+            message: 'No active license seat to renew',
+            code: 'SEAT_INACTIVE',
+            body: result,
+        });
+    }
+    return result;
 }
 /**
  * Interval-based activity tracking for browser or Node External Apps.

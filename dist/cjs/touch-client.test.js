@@ -55,7 +55,7 @@ const index_js_1 = require("./index.js");
         }), (error) => error instanceof index_js_1.LicenseTouchError && error.code === 'NO_TOKEN');
     });
     (0, node_test_1.it)('passes through updatedCount from api-auth', async () => {
-        const fetchImpl = async () => new Response(JSON.stringify({ success: true, updatedCount: 0, timestamp: 't' }), {
+        const fetchImpl = async () => new Response(JSON.stringify({ success: true, updatedCount: 1, timestamp: 't' }), {
             status: 200,
             headers: { 'content-type': 'application/json' },
         });
@@ -64,8 +64,19 @@ const index_js_1 = require("./index.js");
             accessToken: 'tok',
             fetchImpl,
         });
-        strict_1.default.equal(result.updatedCount, 0);
-        strict_1.default.equal((0, index_js_1.isLicenseSeatInactiveResult)(result), true);
+        strict_1.default.equal(result.updatedCount, 1);
+        strict_1.default.equal((0, index_js_1.isLicenseSeatInactiveResult)(result), false);
+    });
+    (0, node_test_1.it)('throws SEAT_INACTIVE when updatedCount is 0', async () => {
+        const fetchImpl = async () => new Response(JSON.stringify({ success: true, updatedCount: 0 }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+        });
+        await strict_1.default.rejects(() => (0, index_js_1.touchLicenseSeat)({
+            apiAuthBaseUrl: 'https://auth.example.com',
+            accessToken: 'tok',
+            fetchImpl,
+        }), (error) => error instanceof index_js_1.LicenseTouchError && error.code === 'SEAT_INACTIVE');
     });
 });
 (0, node_test_1.describe)('LicenseTouchClient', () => {

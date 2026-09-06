@@ -86,7 +86,7 @@ await touchLicenseSeat({
 api-auth returns `{ success, updatedCount, timestamp }`.
 
 - `updatedCount >= 1` — seat renewed
-- `updatedCount === 0` — no active `AgentSession` for this External App (re-OAuth to open a seat)
+- `updatedCount === 0` — package throws `LicenseTouchError` with code `SEAT_INACTIVE` (re-OAuth)
 - Older api-auth builds may omit `updatedCount` — treat as unknown, do not force re-login
 
 Helpers: `isLicenseSeatInactiveResult(result)`, `isLicenseReauthRequired(error)` (`UNAUTHORIZED` / `NO_TOKEN` / `SEAT_INACTIVE`).
