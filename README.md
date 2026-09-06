@@ -81,6 +81,16 @@ await touchLicenseSeat({
 });
 ```
 
+## Heartbeat response
+
+api-auth returns `{ success, updatedCount, timestamp }`.
+
+- `updatedCount >= 1` — seat renewed
+- `updatedCount === 0` — no active `AgentSession` for this External App (re-OAuth to open a seat)
+- Older api-auth builds may omit `updatedCount` — treat as unknown, do not force re-login
+
+Helpers: `isLicenseSeatInactiveResult(result)`, `isLicenseReauthRequired(error)` (`UNAUTHORIZED` / `NO_TOKEN` / `SEAT_INACTIVE`).
+
 ## Rules
 
 | Do | Don't |

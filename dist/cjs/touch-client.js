@@ -4,6 +4,8 @@ exports.LicenseTouchClient = void 0;
 exports.touchLicenseSeat = touchLicenseSeat;
 exports.isLicenseTouchUnauthorized = isLicenseTouchUnauthorized;
 exports.isLicenseQuotaExceeded = isLicenseQuotaExceeded;
+exports.isLicenseSeatInactiveResult = isLicenseSeatInactiveResult;
+exports.isLicenseReauthRequired = isLicenseReauthRequired;
 const constants_js_1 = require("./constants.js");
 const types_js_1 = require("./types.js");
 function normalizeBaseUrl(apiAuthBaseUrl) {
@@ -108,6 +110,7 @@ async function touchLicenseSeat(input) {
     return {
         success: payload.success !== false,
         timestamp: payload.timestamp,
+        updatedCount: typeof payload.updatedCount === 'number' ? payload.updatedCount : undefined,
     };
 }
 /**
@@ -189,4 +192,15 @@ function isLicenseTouchUnauthorized(error) {
 }
 function isLicenseQuotaExceeded(error) {
     return error instanceof types_js_1.LicenseTouchError && error.code === 'QUOTA_EXCEEDED';
+}
+/** True when api-auth reported zero AgentSession rows updated (seat gone / stale). */
+function isLicenseSeatInactiveResult(result) {
+    return typeof result.updatedCount === 'number' && result.updatedCount === 0;
+}
+/** Auth or seat-loss errors that External Apps should handle with re-OAuth. */
+function isLicenseReauthRequired(error) {
+    return (error instanceof types_js_1.LicenseTouchError &&
+        (error.code === 'UNAUTHORIZED' ||
+            error.code === 'NO_TOKEN' ||
+            error.code === 'SEAT_INACTIVE'));
 }

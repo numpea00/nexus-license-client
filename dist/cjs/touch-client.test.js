@@ -22,6 +22,7 @@ const index_js_1 = require("./index.js");
             fetchImpl,
         });
         strict_1.default.equal(result.success, true);
+        strict_1.default.equal(result.updatedCount, undefined);
         strict_1.default.equal(calls.length, 1);
         strict_1.default.equal(calls[0]?.url, `https://auth.example.com${index_js_1.LICENSE_TOUCH.HEARTBEAT_PATH}`);
         strict_1.default.equal((calls[0]?.init?.headers).Authorization, 'Bearer tok-1');
@@ -52,6 +53,19 @@ const index_js_1 = require("./index.js");
             apiAuthBaseUrl: 'https://auth.example.com',
             accessToken: '',
         }), (error) => error instanceof index_js_1.LicenseTouchError && error.code === 'NO_TOKEN');
+    });
+    (0, node_test_1.it)('passes through updatedCount from api-auth', async () => {
+        const fetchImpl = async () => new Response(JSON.stringify({ success: true, updatedCount: 0, timestamp: 't' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+        });
+        const result = await (0, index_js_1.touchLicenseSeat)({
+            apiAuthBaseUrl: 'https://auth.example.com',
+            accessToken: 'tok',
+            fetchImpl,
+        });
+        strict_1.default.equal(result.updatedCount, 0);
+        strict_1.default.equal((0, index_js_1.isLicenseSeatInactiveResult)(result), true);
     });
 });
 (0, node_test_1.describe)('LicenseTouchClient', () => {

@@ -5,6 +5,7 @@ import {
   LicenseTouchClient,
   LicenseTouchError,
   isLicenseQuotaExceeded,
+  isLicenseSeatInactiveResult,
   isLicenseTouchUnauthorized,
   touchLicenseSeat,
 } from './index.js';
@@ -25,6 +26,7 @@ describe('touchLicenseSeat', () => {
       fetchImpl,
     });
     assert.equal(result.success, true);
+    assert.equal(result.updatedCount, undefined);
     assert.equal(calls.length, 1);
     assert.equal(calls[0]?.url, `https://auth.example.com${LICENSE_TOUCH.HEARTBEAT_PATH}`);
     assert.equal((calls[0]?.init?.headers as Record<string, string>).Authorization, 'Bearer tok-1');
@@ -71,6 +73,21 @@ describe('touchLicenseSeat', () => {
         }),
       (error: unknown) => error instanceof LicenseTouchError && error.code === 'NO_TOKEN',
     );
+  });
+
+  it('passes through updatedCount from api-auth', async () => {
+    const fetchImpl: typeof fetch = async () =>
+      new Response(JSON.stringify({ success: true, updatedCount: 0, timestamp: 't' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    const result = await touchLicenseSeat({
+      apiAuthBaseUrl: 'https://auth.example.com',
+      accessToken: 'tok',
+      fetchImpl,
+    });
+    assert.equal(result.updatedCount, 0);
+    assert.equal(isLicenseSeatInactiveResult(result), true);
   });
 });
 

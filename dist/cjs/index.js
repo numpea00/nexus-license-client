@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LicenseTouchError = exports.touchLicenseSeat = exports.isLicenseTouchUnauthorized = exports.isLicenseQuotaExceeded = exports.LicenseTouchClient = exports.LICENSE_TOUCH = void 0;
+exports.LicenseTouchError = exports.touchLicenseSeat = exports.isLicenseTouchUnauthorized = exports.isLicenseSeatInactiveResult = exports.isLicenseReauthRequired = exports.isLicenseQuotaExceeded = exports.LicenseTouchClient = exports.LICENSE_TOUCH = void 0;
 var constants_js_1 = require("./constants.js");
 Object.defineProperty(exports, "LICENSE_TOUCH", { enumerable: true, get: function () { return constants_js_1.LICENSE_TOUCH; } });
 var touch_client_js_1 = require("./touch-client.js");
 Object.defineProperty(exports, "LicenseTouchClient", { enumerable: true, get: function () { return touch_client_js_1.LicenseTouchClient; } });
 Object.defineProperty(exports, "isLicenseQuotaExceeded", { enumerable: true, get: function () { return touch_client_js_1.isLicenseQuotaExceeded; } });
+Object.defineProperty(exports, "isLicenseReauthRequired", { enumerable: true, get: function () { return touch_client_js_1.isLicenseReauthRequired; } });
+Object.defineProperty(exports, "isLicenseSeatInactiveResult", { enumerable: true, get: function () { return touch_client_js_1.isLicenseSeatInactiveResult; } });
 Object.defineProperty(exports, "isLicenseTouchUnauthorized", { enumerable: true, get: function () { return touch_client_js_1.isLicenseTouchUnauthorized; } });
 Object.defineProperty(exports, "touchLicenseSeat", { enumerable: true, get: function () { return touch_client_js_1.touchLicenseSeat; } });
 var types_js_1 = require("./types.js");

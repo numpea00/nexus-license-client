@@ -102,6 +102,7 @@ export async function touchLicenseSeat(input) {
     return {
         success: payload.success !== false,
         timestamp: payload.timestamp,
+        updatedCount: typeof payload.updatedCount === 'number' ? payload.updatedCount : undefined,
     };
 }
 /**
@@ -182,4 +183,15 @@ export function isLicenseTouchUnauthorized(error) {
 }
 export function isLicenseQuotaExceeded(error) {
     return error instanceof LicenseTouchError && error.code === 'QUOTA_EXCEEDED';
+}
+/** True when api-auth reported zero AgentSession rows updated (seat gone / stale). */
+export function isLicenseSeatInactiveResult(result) {
+    return typeof result.updatedCount === 'number' && result.updatedCount === 0;
+}
+/** Auth or seat-loss errors that External Apps should handle with re-OAuth. */
+export function isLicenseReauthRequired(error) {
+    return (error instanceof LicenseTouchError &&
+        (error.code === 'UNAUTHORIZED' ||
+            error.code === 'NO_TOKEN' ||
+            error.code === 'SEAT_INACTIVE'));
 }

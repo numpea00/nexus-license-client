@@ -1,5 +1,7 @@
 export type LicenseTouchResult = {
   success: boolean;
+  /** AgentSession rows updated by api-auth. 0 = no active seat (re-OAuth). */
+  updatedCount?: number;
   timestamp?: string;
 };
 
@@ -29,7 +31,14 @@ export type LicenseTouchClientOptions = {
 export class LicenseTouchError extends Error {
   readonly status?: number;
   readonly body?: unknown;
-  readonly code: 'UNAUTHORIZED' | 'QUOTA_EXCEEDED' | 'NETWORK' | 'HTTP' | 'NO_TOKEN' | 'TIMEOUT';
+  readonly code:
+    | 'UNAUTHORIZED'
+    | 'QUOTA_EXCEEDED'
+    | 'NETWORK'
+    | 'HTTP'
+    | 'NO_TOKEN'
+    | 'TIMEOUT'
+    | 'SEAT_INACTIVE';
 
   constructor(params: {
     message: string;

@@ -23,3 +23,7 @@ export declare class LicenseTouchClient {
 }
 export declare function isLicenseTouchUnauthorized(error: unknown): boolean;
 export declare function isLicenseQuotaExceeded(error: unknown): boolean;
+/** True when api-auth reported zero AgentSession rows updated (seat gone / stale). */
+export declare function isLicenseSeatInactiveResult(result: LicenseTouchResult): boolean;
+/** Auth or seat-loss errors that External Apps should handle with re-OAuth. */
+export declare function isLicenseReauthRequired(error: unknown): boolean;
