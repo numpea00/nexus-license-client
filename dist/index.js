@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LicenseTouchError = exports.touchLicenseSeat = exports.isLicenseTouchUnauthorized = exports.isLicenseQuotaExceeded = exports.LicenseTouchClient = exports.LICENSE_TOUCH = void 0;
+var constants_1 = require("./constants");
+Object.defineProperty(exports, "LICENSE_TOUCH", { enumerable: true, get: function () { return constants_1.LICENSE_TOUCH; } });
+var touch_client_1 = require("./touch-client");
+Object.defineProperty(exports, "LicenseTouchClient", { enumerable: true, get: function () { return touch_client_1.LicenseTouchClient; } });
+Object.defineProperty(exports, "isLicenseQuotaExceeded", { enumerable: true, get: function () { return touch_client_1.isLicenseQuotaExceeded; } });
+Object.defineProperty(exports, "isLicenseTouchUnauthorized", { enumerable: true, get: function () { return touch_client_1.isLicenseTouchUnauthorized; } });
+Object.defineProperty(exports, "touchLicenseSeat", { enumerable: true, get: function () { return touch_client_1.touchLicenseSeat; } });
+var types_1 = require("./types");
+Object.defineProperty(exports, "LicenseTouchError", { enumerable: true, get: function () { return types_1.LicenseTouchError; } });
