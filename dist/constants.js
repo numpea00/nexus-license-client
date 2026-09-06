@@ -17,6 +17,8 @@ exports.LICENSE_TOUCH = {
     ACTIVE_WINDOW_MS: 5 * 60 * 1000,
     /** api-auth stale cleanup threshold (logoutAt). */
     STALE_CLEANUP_MS: 10 * 60 * 1000,
+    /** Default HTTP timeout for a single touch request. */
+    DEFAULT_TIMEOUT_MS: 15 * 1000,
     /** Path relative to api-auth base URL (no trailing slash on base). */
     HEARTBEAT_PATH: '/sessions/heartbeat',
 };

@@ -97,4 +97,30 @@ describe('LicenseTouchClient', () => {
     client.stop();
     assert.equal(client.isRunning, false);
   });
+
+  it('coalesces concurrent touch() into one HTTP call', async () => {
+    let hits = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const fetchImpl: typeof fetch = async () => {
+      hits += 1;
+      await gate;
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    };
+    const client = new LicenseTouchClient({
+      apiAuthBaseUrl: 'https://auth.example.com',
+      getAccessToken: () => 'tok',
+      fetchImpl,
+    });
+    const a = client.touch();
+    const b = client.touch();
+    release();
+    await Promise.all([a, b]);
+    assert.equal(hits, 1);
+  });
 });

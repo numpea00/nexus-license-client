@@ -14,6 +14,8 @@ export declare const LICENSE_TOUCH: {
     readonly ACTIVE_WINDOW_MS: number;
     /** api-auth stale cleanup threshold (logoutAt). */
     readonly STALE_CLEANUP_MS: number;
+    /** Default HTTP timeout for a single touch request. */
+    readonly DEFAULT_TIMEOUT_MS: number;
     /** Path relative to api-auth base URL (no trailing slash on base). */
     readonly HEARTBEAT_PATH: "/sessions/heartbeat";
 };

@@ -77,4 +77,29 @@ const index_1 = require("./index");
         client.stop();
         strict_1.default.equal(client.isRunning, false);
     });
+    (0, node_test_1.it)('coalesces concurrent touch() into one HTTP call', async () => {
+        let hits = 0;
+        let release;
+        const gate = new Promise((resolve) => {
+            release = resolve;
+        });
+        const fetchImpl = async () => {
+            hits += 1;
+            await gate;
+            return new Response(JSON.stringify({ success: true }), {
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+            });
+        };
+        const client = new index_1.LicenseTouchClient({
+            apiAuthBaseUrl: 'https://auth.example.com',
+            getAccessToken: () => 'tok',
+            fetchImpl,
+        });
+        const a = client.touch();
+        const b = client.touch();
+        release();
+        await Promise.all([a, b]);
+        strict_1.default.equal(hits, 1);
+    });
 });

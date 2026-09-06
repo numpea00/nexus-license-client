@@ -7,7 +7,65 @@ exports.isLicenseQuotaExceeded = isLicenseQuotaExceeded;
 const constants_1 = require("./constants");
 const types_1 = require("./types");
 function normalizeBaseUrl(apiAuthBaseUrl) {
-    return apiAuthBaseUrl.replace(/\/+$/, '');
+    const trimmed = apiAuthBaseUrl.trim();
+    if (!trimmed) {
+        throw new types_1.LicenseTouchError({
+            message: 'Missing api-auth base URL for license touch',
+            code: 'HTTP',
+        });
+    }
+    return trimmed.replace(/\/+$/, '');
+}
+function toLicenseTouchError(error) {
+    if (error instanceof types_1.LicenseTouchError) {
+        return error;
+    }
+    if (error instanceof Error && error.name === 'AbortError') {
+        return new types_1.LicenseTouchError({
+            message: 'License touch timed out',
+            code: 'TIMEOUT',
+        });
+    }
+    return new types_1.LicenseTouchError({
+        message: error instanceof Error ? error.message : 'License touch network error',
+        code: 'NETWORK',
+    });
+}
+async function parseJsonBody(response) {
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) {
+        return undefined;
+    }
+    try {
+        return await response.json();
+    }
+    catch {
+        return undefined;
+    }
+}
+function throwForHttpStatus(status, body) {
+    if (status === 401) {
+        throw new types_1.LicenseTouchError({
+            message: 'License touch unauthorized',
+            code: 'UNAUTHORIZED',
+            status: 401,
+            body,
+        });
+    }
+    if (status === 429) {
+        throw new types_1.LicenseTouchError({
+            message: 'License quota exceeded',
+            code: 'QUOTA_EXCEEDED',
+            status: 429,
+            body,
+        });
+    }
+    throw new types_1.LicenseTouchError({
+        message: `License touch failed with HTTP ${status}`,
+        code: 'HTTP',
+        status,
+        body,
+    });
 }
 /**
  * One-shot activity renew for an External App license seat.
@@ -22,6 +80,9 @@ async function touchLicenseSeat(input) {
         });
     }
     const fetchImpl = input.fetchImpl ?? fetch;
+    const timeoutMs = input.timeoutMs ?? constants_1.LICENSE_TOUCH.DEFAULT_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     try {
         response = await fetchImpl(`${baseUrl}${constants_1.LICENSE_TOUCH.HEARTBEAT_PATH}`, {
@@ -30,47 +91,18 @@ async function touchLicenseSeat(input) {
                 Authorization: `Bearer ${input.accessToken}`,
                 Accept: 'application/json',
             },
+            signal: controller.signal,
         });
     }
     catch (error) {
-        throw new types_1.LicenseTouchError({
-            message: error instanceof Error ? error.message : 'License touch network error',
-            code: 'NETWORK',
-        });
+        throw toLicenseTouchError(error);
     }
-    let body;
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        try {
-            body = await response.json();
-        }
-        catch {
-            body = undefined;
-        }
+    finally {
+        clearTimeout(timeoutId);
     }
-    if (response.status === 401) {
-        throw new types_1.LicenseTouchError({
-            message: 'License touch unauthorized',
-            code: 'UNAUTHORIZED',
-            status: 401,
-            body,
-        });
-    }
-    if (response.status === 429) {
-        throw new types_1.LicenseTouchError({
-            message: 'License quota exceeded',
-            code: 'QUOTA_EXCEEDED',
-            status: 429,
-            body,
-        });
-    }
+    const body = await parseJsonBody(response);
     if (!response.ok) {
-        throw new types_1.LicenseTouchError({
-            message: `License touch failed with HTTP ${response.status}`,
-            code: 'HTTP',
-            status: response.status,
-            body,
-        });
+        throwForHttpStatus(response.status, body);
     }
     const payload = (body ?? {});
     return {
@@ -81,6 +113,7 @@ async function touchLicenseSeat(input) {
 /**
  * Interval-based activity tracking for browser or Node External Apps.
  * Call start() after OAuth; stop() on logout/unmount.
+ * Concurrent touch() calls coalesce onto one in-flight HTTP request.
  */
 class LicenseTouchClient {
     options;
@@ -94,6 +127,18 @@ class LicenseTouchClient {
         return this.running;
     }
     async touch() {
+        if (this.inFlight) {
+            return this.inFlight;
+        }
+        this.inFlight = this.executeTouch();
+        try {
+            return await this.inFlight;
+        }
+        finally {
+            this.inFlight = null;
+        }
+    }
+    async executeTouch() {
         const accessToken = await this.options.getAccessToken();
         if (!accessToken) {
             const error = new types_1.LicenseTouchError({
@@ -103,36 +148,20 @@ class LicenseTouchClient {
             this.options.onError?.(error);
             throw error;
         }
-        if (this.inFlight) {
-            await this.inFlight;
-        }
-        const run = (async () => {
-            try {
-                const result = await touchLicenseSeat({
-                    apiAuthBaseUrl: this.options.apiAuthBaseUrl,
-                    accessToken,
-                    fetchImpl: this.options.fetchImpl,
-                });
-                this.options.onSuccess?.(result);
-                return result;
-            }
-            catch (error) {
-                const touchError = error instanceof types_1.LicenseTouchError
-                    ? error
-                    : new types_1.LicenseTouchError({
-                        message: error instanceof Error ? error.message : 'License touch failed',
-                        code: 'NETWORK',
-                    });
-                this.options.onError?.(touchError);
-                throw touchError;
-            }
-        })();
-        this.inFlight = run.then(() => undefined, () => undefined);
         try {
-            return await run;
+            const result = await touchLicenseSeat({
+                apiAuthBaseUrl: this.options.apiAuthBaseUrl,
+                accessToken,
+                fetchImpl: this.options.fetchImpl,
+                timeoutMs: this.options.timeoutMs,
+            });
+            this.options.onSuccess?.(result);
+            return result;
         }
-        finally {
-            this.inFlight = null;
+        catch (error) {
+            const touchError = toLicenseTouchError(error);
+            this.options.onError?.(touchError);
+            throw touchError;
         }
     }
     start(intervalMs) {

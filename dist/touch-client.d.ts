@@ -7,6 +7,7 @@ export declare function touchLicenseSeat(input: TouchLicenseSeatInput): Promise<
 /**
  * Interval-based activity tracking for browser or Node External Apps.
  * Call start() after OAuth; stop() on logout/unmount.
+ * Concurrent touch() calls coalesce onto one in-flight HTTP request.
  */
 export declare class LicenseTouchClient {
     private readonly options;
@@ -16,6 +17,7 @@ export declare class LicenseTouchClient {
     constructor(options: LicenseTouchClientOptions);
     get isRunning(): boolean;
     touch(): Promise<LicenseTouchResult>;
+    private executeTouch;
     start(intervalMs?: number): void;
     stop(): void;
 }
