@@ -1,15 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LicenseTouchClient = void 0;
-exports.touchLicenseSeat = touchLicenseSeat;
-exports.isLicenseTouchUnauthorized = isLicenseTouchUnauthorized;
-exports.isLicenseQuotaExceeded = isLicenseQuotaExceeded;
-const constants_1 = require("./constants");
-const types_1 = require("./types");
+import { LICENSE_TOUCH } from './constants.js';
+import { LicenseTouchError, } from './types.js';
 function normalizeBaseUrl(apiAuthBaseUrl) {
     const trimmed = apiAuthBaseUrl.trim();
     if (!trimmed) {
-        throw new types_1.LicenseTouchError({
+        throw new LicenseTouchError({
             message: 'Missing api-auth base URL for license touch',
             code: 'HTTP',
         });
@@ -17,16 +11,16 @@ function normalizeBaseUrl(apiAuthBaseUrl) {
     return trimmed.replace(/\/+$/, '');
 }
 function toLicenseTouchError(error) {
-    if (error instanceof types_1.LicenseTouchError) {
+    if (error instanceof LicenseTouchError) {
         return error;
     }
     if (error instanceof Error && error.name === 'AbortError') {
-        return new types_1.LicenseTouchError({
+        return new LicenseTouchError({
             message: 'License touch timed out',
             code: 'TIMEOUT',
         });
     }
-    return new types_1.LicenseTouchError({
+    return new LicenseTouchError({
         message: error instanceof Error ? error.message : 'License touch network error',
         code: 'NETWORK',
     });
@@ -45,7 +39,7 @@ async function parseJsonBody(response) {
 }
 function throwForHttpStatus(status, body) {
     if (status === 401) {
-        throw new types_1.LicenseTouchError({
+        throw new LicenseTouchError({
             message: 'License touch unauthorized',
             code: 'UNAUTHORIZED',
             status: 401,
@@ -53,14 +47,14 @@ function throwForHttpStatus(status, body) {
         });
     }
     if (status === 429) {
-        throw new types_1.LicenseTouchError({
+        throw new LicenseTouchError({
             message: 'License quota exceeded',
             code: 'QUOTA_EXCEEDED',
             status: 429,
             body,
         });
     }
-    throw new types_1.LicenseTouchError({
+    throw new LicenseTouchError({
         message: `License touch failed with HTTP ${status}`,
         code: 'HTTP',
         status,
@@ -71,21 +65,21 @@ function throwForHttpStatus(status, body) {
  * One-shot activity renew for an External App license seat.
  * Equivalent names: touch / heartbeat / lease renew — same api-auth endpoint.
  */
-async function touchLicenseSeat(input) {
+export async function touchLicenseSeat(input) {
     const baseUrl = normalizeBaseUrl(input.apiAuthBaseUrl);
     if (!input.accessToken) {
-        throw new types_1.LicenseTouchError({
+        throw new LicenseTouchError({
             message: 'Missing OAuth access token for license touch',
             code: 'NO_TOKEN',
         });
     }
     const fetchImpl = input.fetchImpl ?? fetch;
-    const timeoutMs = input.timeoutMs ?? constants_1.LICENSE_TOUCH.DEFAULT_TIMEOUT_MS;
+    const timeoutMs = input.timeoutMs ?? LICENSE_TOUCH.DEFAULT_TIMEOUT_MS;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     try {
-        response = await fetchImpl(`${baseUrl}${constants_1.LICENSE_TOUCH.HEARTBEAT_PATH}`, {
+        response = await fetchImpl(`${baseUrl}${LICENSE_TOUCH.HEARTBEAT_PATH}`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${input.accessToken}`,
@@ -115,7 +109,7 @@ async function touchLicenseSeat(input) {
  * Call start() after OAuth; stop() on logout/unmount.
  * Concurrent touch() calls coalesce onto one in-flight HTTP request.
  */
-class LicenseTouchClient {
+export class LicenseTouchClient {
     options;
     timer = null;
     inFlight = null;
@@ -141,7 +135,7 @@ class LicenseTouchClient {
     async executeTouch() {
         const accessToken = await this.options.getAccessToken();
         if (!accessToken) {
-            const error = new types_1.LicenseTouchError({
+            const error = new LicenseTouchError({
                 message: 'Missing OAuth access token for license touch',
                 code: 'NO_TOKEN',
             });
@@ -168,7 +162,7 @@ class LicenseTouchClient {
         if (this.running) {
             this.stop();
         }
-        const ms = intervalMs ?? this.options.intervalMs ?? constants_1.LICENSE_TOUCH.RECOMMENDED_INTERVAL_MS;
+        const ms = intervalMs ?? this.options.intervalMs ?? LICENSE_TOUCH.RECOMMENDED_INTERVAL_MS;
         this.running = true;
         void this.touch().catch(() => undefined);
         this.timer = setInterval(() => {
@@ -183,10 +177,9 @@ class LicenseTouchClient {
         this.running = false;
     }
 }
-exports.LicenseTouchClient = LicenseTouchClient;
-function isLicenseTouchUnauthorized(error) {
-    return error instanceof types_1.LicenseTouchError && error.code === 'UNAUTHORIZED';
+export function isLicenseTouchUnauthorized(error) {
+    return error instanceof LicenseTouchError && error.code === 'UNAUTHORIZED';
 }
-function isLicenseQuotaExceeded(error) {
-    return error instanceof types_1.LicenseTouchError && error.code === 'QUOTA_EXCEEDED';
+export function isLicenseQuotaExceeded(error) {
+    return error instanceof LicenseTouchError && error.code === 'QUOTA_EXCEEDED';
 }

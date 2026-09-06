@@ -1,4 +1,4 @@
-import { LicenseTouchClientOptions, LicenseTouchResult, TouchLicenseSeatInput } from './types';
+import { LicenseTouchClientOptions, LicenseTouchResult, TouchLicenseSeatInput } from './types.js';
 /**
  * One-shot activity renew for an External App license seat.
  * Equivalent names: touch / heartbeat / lease renew — same api-auth endpoint.

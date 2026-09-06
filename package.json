@@ -1,6 +1,6 @@
 {
   "name": "@tubtimx/nexus-license-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared license seat touch (activity renew) client for TubtimX Nexus External Apps → api-auth POST /sessions/heartbeat",
   "license": "UNLICENSED",
   "repository": {
@@ -11,12 +11,22 @@
     "url": "https://github.com/numpea00/nexus-license-client/issues"
   },
   "homepage": "https://github.com/numpea00/nexus-license-client#readme",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "default": "./dist/esm/index.js"
     }
   },
   "files": [
@@ -24,9 +34,12 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "pnpm run build && tsc -p tsconfig.test.json && node --test dist/touch-client.test.js"
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build:esm": "tsc -p tsconfig.esm.json && node -e \"require('fs').copyFileSync('build-artifacts/esm-package.json','dist/esm/package.json')\"",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node -e \"require('fs').copyFileSync('build-artifacts/cjs-package.json','dist/cjs/package.json')\"",
+    "build": "pnpm run clean && pnpm run build:esm && pnpm run build:cjs",
+    "typecheck": "tsc -p tsconfig.esm.json --noEmit",
+    "test": "pnpm run build && tsc -p tsconfig.test.json && node --test dist/cjs/touch-client.test.js"
   },
   "engines": {
     "node": ">=20"

@@ -12,6 +12,21 @@ logout / TTL → seat released
 
 `touch` = heartbeat = lease renew. Do **not** invent a second renew API.
 
+## Packaging
+
+Dual build for bundlers and Node:
+
+| Condition | Entry |
+|---|---|
+| `import` (ESM) | `dist/esm/index.js` |
+| `require` (CJS) | `dist/cjs/index.js` |
+| TypeScript types | matching `dist/*/index.d.ts` |
+
+```bash
+pnpm run build   # cleans + ESM + CJS
+pnpm test
+```
+
 ## Install
 
 From GitHub ([numpea00/nexus-license-client](https://github.com/numpea00/nexus-license-client)):

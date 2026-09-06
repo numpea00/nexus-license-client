@@ -1,10 +1,10 @@
-import { LICENSE_TOUCH } from './constants';
+import { LICENSE_TOUCH } from './constants.js';
 import {
   LicenseTouchClientOptions,
   LicenseTouchError,
   LicenseTouchResult,
   TouchLicenseSeatInput,
-} from './types';
+} from './types.js';
 
 function normalizeBaseUrl(apiAuthBaseUrl: string): string {
   const trimmed = apiAuthBaseUrl.trim();

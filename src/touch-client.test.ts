@@ -7,7 +7,7 @@ import {
   isLicenseQuotaExceeded,
   isLicenseTouchUnauthorized,
   touchLicenseSeat,
-} from './index';
+} from './index.js';
 
 describe('touchLicenseSeat', () => {
   it('POSTs heartbeat with bearer token', async () => {

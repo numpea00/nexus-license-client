@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const strict_1 = __importDefault(require("node:assert/strict"));
 const node_test_1 = require("node:test");
-const index_1 = require("./index");
+const index_js_1 = require("./index.js");
 (0, node_test_1.describe)('touchLicenseSeat', () => {
     (0, node_test_1.it)('POSTs heartbeat with bearer token', async () => {
         const calls = [];
@@ -16,14 +16,14 @@ const index_1 = require("./index");
                 headers: { 'content-type': 'application/json' },
             });
         };
-        const result = await (0, index_1.touchLicenseSeat)({
+        const result = await (0, index_js_1.touchLicenseSeat)({
             apiAuthBaseUrl: 'https://auth.example.com/',
             accessToken: 'tok-1',
             fetchImpl,
         });
         strict_1.default.equal(result.success, true);
         strict_1.default.equal(calls.length, 1);
-        strict_1.default.equal(calls[0]?.url, `https://auth.example.com${index_1.LICENSE_TOUCH.HEARTBEAT_PATH}`);
+        strict_1.default.equal(calls[0]?.url, `https://auth.example.com${index_js_1.LICENSE_TOUCH.HEARTBEAT_PATH}`);
         strict_1.default.equal((calls[0]?.init?.headers).Authorization, 'Bearer tok-1');
         strict_1.default.equal(calls[0]?.init?.method, 'POST');
     });
@@ -32,26 +32,26 @@ const index_1 = require("./index");
             status: 401,
             headers: { 'content-type': 'application/json' },
         });
-        await strict_1.default.rejects(() => (0, index_1.touchLicenseSeat)({
+        await strict_1.default.rejects(() => (0, index_js_1.touchLicenseSeat)({
             apiAuthBaseUrl: 'https://auth.example.com',
             accessToken: 'x',
             fetchImpl: unauthorized,
-        }), (error) => (0, index_1.isLicenseTouchUnauthorized)(error));
+        }), (error) => (0, index_js_1.isLicenseTouchUnauthorized)(error));
         const quota = async () => new Response(JSON.stringify({ errorCode: 'BIZ_4005' }), {
             status: 429,
             headers: { 'content-type': 'application/json' },
         });
-        await strict_1.default.rejects(() => (0, index_1.touchLicenseSeat)({
+        await strict_1.default.rejects(() => (0, index_js_1.touchLicenseSeat)({
             apiAuthBaseUrl: 'https://auth.example.com',
             accessToken: 'x',
             fetchImpl: quota,
-        }), (error) => (0, index_1.isLicenseQuotaExceeded)(error));
+        }), (error) => (0, index_js_1.isLicenseQuotaExceeded)(error));
     });
     (0, node_test_1.it)('rejects empty token', async () => {
-        await strict_1.default.rejects(() => (0, index_1.touchLicenseSeat)({
+        await strict_1.default.rejects(() => (0, index_js_1.touchLicenseSeat)({
             apiAuthBaseUrl: 'https://auth.example.com',
             accessToken: '',
-        }), (error) => error instanceof index_1.LicenseTouchError && error.code === 'NO_TOKEN');
+        }), (error) => error instanceof index_js_1.LicenseTouchError && error.code === 'NO_TOKEN');
     });
 });
 (0, node_test_1.describe)('LicenseTouchClient', () => {
@@ -64,7 +64,7 @@ const index_1 = require("./index");
                 headers: { 'content-type': 'application/json' },
             });
         };
-        const client = new index_1.LicenseTouchClient({
+        const client = new index_js_1.LicenseTouchClient({
             apiAuthBaseUrl: 'https://auth.example.com',
             getAccessToken: () => 'tok',
             intervalMs: 60_000,
@@ -91,7 +91,7 @@ const index_1 = require("./index");
                 headers: { 'content-type': 'application/json' },
             });
         };
-        const client = new index_1.LicenseTouchClient({
+        const client = new index_js_1.LicenseTouchClient({
             apiAuthBaseUrl: 'https://auth.example.com',
             getAccessToken: () => 'tok',
             fetchImpl,
